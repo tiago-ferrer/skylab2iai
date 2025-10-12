@@ -38,3 +38,9 @@ fits_data/
 
 # Jupyter Notebook
 .ipynb_checkpoints
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
