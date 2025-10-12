@@ -80,6 +80,41 @@ Or run a quick verification:
 python quick_test.py
 ```
 
+Test GitHub installation:
+
+```bash
+python test_github_install.py
+```
+
+## Troubleshooting
+
+### Google Colab: "unable to open database file" or "no such table"
+
+If you encounter database errors in Google Colab, try these steps:
+
+1. **Restart the runtime** and reinstall:
+   ```python
+   # In Google Colab, go to Runtime > Restart runtime
+   # Then reinstall the library
+   !pip install --force-reinstall git+https://github.com/tiago-ferrer/skylab2iai.git
+   ```
+
+2. **Clear pip cache** before installing:
+   ```python
+   !pip cache purge
+   !pip install git+https://github.com/tiago-ferrer/skylab2iai.git
+   ```
+
+3. **Verify the database is loaded**:
+   ```python
+   from skylab2iai import PlateFrameService
+   service = PlateFrameService()
+   plate_frames = service.get_plate_frames()
+   print(f"Loaded {len(plate_frames)} plate frames")
+   ```
+
+The library includes a 1.8MB SQLite database with 6408 plate frames. If you see this count, everything is working correctly!
+
 ## License
 
 MIT License
