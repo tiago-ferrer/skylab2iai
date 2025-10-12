@@ -1,3 +1,6 @@
+from io import UnsupportedOperation
+
+import pandas as pd
 import requests
 from pathlib import Path
 from typing import Optional
@@ -32,24 +35,29 @@ class PlateFrameService:
     
     def download_fits_plate_frames(self, plate_names: tuple, output_dir: Optional[str] = None):
         """
-        Download FITS files for the given plate names.
+        Download FITS files for the specified plate frames.
         
         Args:
-            plate_names: Tuple of plate frame names to download
-            output_dir: Optional directory to save files. Defaults to './fits_downloads'
-        
+            plate_names: A tuple of plate frame names to download
+            output_dir: Directory to save downloaded files (default: './fits_downloads')
+            
         Returns:
-            List of downloaded file paths
+            A tuple containing (DataFrame of plate frames, list of downloaded file paths)
         """
+        # Setup output directory
         if output_dir is None:
             output_dir = './fits_downloads'
         
         output_path = Path(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
         
+        # Initialize result containers
+        result_frames_list = []
         downloaded_files = []
         
+        # Process each plate name
         for plate_name in plate_names:
+            # Get the plate frame data
             try:
                 plate_frame = self.__repository.get_plate_frame(plate_name)
                 
@@ -57,30 +65,115 @@ class PlateFrameService:
                     print(f"Warning: Plate frame '{plate_name}' not found in database")
                     continue
                 
-                # Get the FITS link from the DataFrame
-                link_fits = plate_frame.iloc[0].get('link_fts') or plate_frame.iloc[0].get('link_fits')
+                # Add this frame to our results
+                result_frames_list.append(plate_frame)
                 
+                # Get the FITS link
+                if 'LINK_FTS' not in plate_frame.columns:
+                    print(f"Warning: No LINK_FTS column for plate frame '{plate_name}'")
+                    continue
+                    
+                link_fits = plate_frame.iloc[0]['LINK_FTS']
                 if not link_fits:
-                    print(f"Warning: No FITS link found for plate frame '{plate_name}'")
+                    print(f"Warning: Empty LINK_FTS for plate frame '{plate_name}'")
                     continue
                 
+                # Download the file using a separate function to isolate any issues
+                file_path = self._download_single_file(link_fits, output_path, plate_name)
+                if file_path:
+                    downloaded_files.append(file_path)
+                    
+            except Exception as e:
+                print(f"Error processing plate frame '{plate_name}': {str(e)}")
+        
+        # Combine all frames into a single DataFrame
+        result_df = pd.DataFrame()
+        if result_frames_list:
+            # If we have only one frame, just return it directly
+            if len(result_frames_list) == 1:
+                result_df = result_frames_list[0]
+            else:
+                # Otherwise try to concatenate
+                try:
+                    result_df = pd.concat(result_frames_list, ignore_index=True)
+                except Exception as concat_error:
+                    print(f"Error combining DataFrames: {str(concat_error)}")
+                    # If concat fails, return the first frame
+                    result_df = result_frames_list[0]
+        
+        return result_df, downloaded_files
+        
+    def _download_single_file(self, url, output_dir, file_prefix):
+        """
+        Helper method to download a single file from a URL
+        
+        Args:
+            url: The URL to download from
+            output_dir: Directory to save the file
+            file_prefix: Prefix for the filename
+            
+        Returns:
+            Path to the downloaded file or None if download failed
+        """
+        try:
+            print(f"Downloading FITS file from {url}")
+            
+            # Make the HTTP request
+            response = requests.get(url, stream=True)
+            response.raise_for_status()
+            
+            # Prepare the output file path
+            file_name = f"{file_prefix}.fits"
+            file_path = output_dir / file_name
+            
+            # Write the file
+            with open(file_path, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    f.write(chunk)
+            
+            print(f"Successfully downloaded: {file_path}")
+            return str(file_path)
+            
+        except Exception as e:
+            print(f"Error downloading file: {str(e)}")
+            return None
+
+    def download_fits_plate_frames_from_custom_query(self, query: str, output_dir: Optional[str] = None):
+
+        if output_dir is None:
+            output_dir = './fits_downloads'
+
+        output_path = Path(output_dir)
+        output_path.mkdir(parents=True, exist_ok=True)
+
+        downloaded_files = []
+
+        plate_frames = self._repository.get_from_custom_query(query)
+
+        if plate_frames.empty:
+            raise UnsupportedOperation(f"Warning: No plate frames found for query '{query}'")
+
+        for index, row in plate_frames.iterrows():
+            plate_frame_name = row["NAME"]
+            link_fit = row["LINK_FTS"]
+            try:
                 # Download the file
-                print(f"Downloading FITS file for '{plate_name}' from {link_fits}")
-                response = requests.get(link_fits, stream=True)
+                print(f"Downloading FITS file for '{plate_frame_name}' from {link_fit}")
+                response = requests.get(link_fit, stream=True)
                 response.raise_for_status()
-                
+
                 # Save the file
-                file_name = f"{plate_name}.fits"
+                file_name = f"{plate_frame_name}.fits"
                 file_path = output_path / file_name
-                
+
                 with open(file_path, 'wb') as f:
                     for chunk in response.iter_content(chunk_size=8192):
                         f.write(chunk)
-                
+
                 print(f"Successfully downloaded: {file_path}")
                 downloaded_files.append(str(file_path))
-                
+
             except Exception as e:
-                print(f"Error downloading FITS file for '{plate_name}': {str(e)}")
-        
-        return downloaded_files
+                print(f"Error downloading FITS file for '{plate_frame_name}': {str(e)}")
+
+        return plate_frames, downloaded_files
