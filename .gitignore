@@ -44,3 +44,8 @@ fits_data/
 .coverage
 htmlcov/
 *.log
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
