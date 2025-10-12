@@ -242,4 +242,4 @@ Tiago Ferrer (ferrertiago@gmail.com)
 
 ## Version
 
-Current version: 0.0.4
+Current version: 0.0.5
