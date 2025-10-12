@@ -66,6 +66,20 @@ for file_path in downloaded_files:
 - pandas >= 2.0.0
 - requests >= 2.31.0
 
+## Testing
+
+Run the comprehensive test suite:
+
+```bash
+python test_main.py
+```
+
+Or run a quick verification:
+
+```bash
+python quick_test.py
+```
+
 ## License
 
 MIT License
