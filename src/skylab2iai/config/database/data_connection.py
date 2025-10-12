@@ -1,6 +1,6 @@
+from pathlib import Path
 from typing import final
 import sqlite3
-from pathlib import Path
 
 @final
 class _SqlDataConnection:
@@ -14,10 +14,8 @@ class _SqlDataConnection:
     
     def __init__(self):
         if self.db is None:
-            # Get the database path relative to this module's location
             db_path = Path(__file__).parent / 'skylab-data.db'
             self.db = sqlite3.connect(str(db_path))
 
-    @final
     def cursor(self):
         return self.db.cursor()

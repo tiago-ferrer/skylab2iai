@@ -1,3 +1,5 @@
+import pandas as pd
+
 from ..config.database.data_connection import _SqlDataConnection
 
 class PlateRepository:
@@ -17,11 +19,9 @@ class PlateRepository:
     def __connection(self):
         return self._connection
 
-    @final
     def get_plate(self, plate_name: str):
         cursor = self.__get_cursor()
         return pd.read_sql_query("SELECT * FROM plate WHERE name = ?", self.__connection, params=(plate_name,))
 
-    @final
     def get_plates(self, plate_name: str):
         return pd.read_sql_query("SELECT * FROM plate", self.__connection)

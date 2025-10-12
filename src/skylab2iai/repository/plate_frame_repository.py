@@ -22,39 +22,39 @@ class PlateFrameRepository:
     def __connection(self):
         return self._connection
 
-    @final
     def get_plate_frame(self, plate_frame_name: str):
-        return pd.read_sql_query("SELECT * FROM plate_frame WHERE name = ?",self.__connection, params=(plate_frame_name,))
+        return pd.read_sql_query("SELECT * FROM plate_frame WHERE name = ?", self.__connection.db, params=(plate_frame_name,))
 
-    @final
     def get_plate_frames(self):
-        return pd.read_sql_query("SELECT * FROM plate_frame", self.__connection)
+        return pd.read_sql_query("SELECT * FROM plate_frame", self.__connection.db)
 
-    @final
     def get_plate_frames_by_plate(self, plate_name: str):
-        return pd.read_sql_query("SELECT * FROM plate_frame WHERE plate_name = ?", self.__connection, params=(plate_name,))
-    
-    def __avoid_sql_injection(self, query: str):
+        return pd.read_sql_query("SELECT * FROM plate_frame WHERE plate_name = ?", self.__connection.db, params=(plate_name,))
+
+    @staticmethod
+    def _avoid_sql_injection(self, query: str):
         if query.__contains__("--"):
             raise UnsupportedOperation("SQL injection is not allowed")
-    
+
+    @staticmethod
     def __avoid_sql_delete(self, query: str):
         if query.__contains__("DELETE"):
             raise UnsupportedOperation("Delete operation is not allowed")
     
-    def __avoid_sql_update(self, query: str):
+    @staticmethod
+    def __avoid_sql_update(query: str):
         if query.__contains__("UPDATE"):
             raise UnsupportedOperation("Update operation is not allowed")
     
-    def __avoid_sql_insert(self, query: str):
+    @staticmethod
+    def __avoid_sql_insert(query: str):
         if query.__contains__("INSERT"):
             raise UnsupportedOperation("Insert operation is not allowed")
 
-    @final
     def get_from_custom_query(self, query: str, params: tuple = None):
-        self.__avoid_sql_injection(query)
+        self._avoid_sql_injection(query)
         self.__avoid_sql_delete(query)
         self.__avoid_sql_update(query)
         self.__avoid_sql_insert(query)
-        return pd.read_sql_query(query, self.__connection, params=params)
+        return pd.read_sql_query(query, self.__connection.db, params=params)
     
