@@ -13,7 +13,7 @@ class _SqlDataConnection:
     
     def __init__(self):
         if self.db is None:
-            self.db = sqlite3.connect('skylab-data.db?mode=ro')
+            self.db = sqlite3.connect('src/skylab2iai/config/database/skylab-data.db')
 
     @final
     def cursor(self):
