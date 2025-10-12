@@ -8,7 +8,7 @@ version = "0.0.1"
 authors = [
   { name="Tiago Ferrer", email="ferrertiago@gmail.com" },
 ]
-description = ""
+description = "A Python library for accessing and analyzing Skylab mission data"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -20,3 +20,13 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
+
+[project.urls]
+Homepage = "https://github.com/tferrer/skylab2iai"
+Repository = "https://github.com/tferrer/skylab2iai"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
