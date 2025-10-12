@@ -27,7 +27,7 @@ pip install -e .
 # Import the library
 from skylab2iai import PlateFrameService
 
-# Create a service instance
+# Create a catalog instance
 service = PlateFrameService()
 
 # Get all plate frames

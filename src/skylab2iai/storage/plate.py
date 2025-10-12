@@ -1,20 +1,24 @@
+from typing import final
+
 import pandas as pd
 
-from ..config.database.data_connection import _SqlDataConnection
+from src.skylab2iai.storage.sql_connection import _SqlStorage
 
-class PlateRepository:
+
+@final
+class _SkylabPlateStorage:
     _instance = None
-    
+
     def __new__(cls):
         if cls._instance is None:
-            cls._instance = super(PlateRepository, cls).__new__(cls)
+            cls._instance = super(_SkylabPlateStorage, cls).__new__(cls)
             cls._instance._connection = None
         return cls._instance
-    
+
     def __init__(self):
         if self._connection is None:
-            self._connection = _SqlDataConnection()
-    
+            self._connection = _SqlStorage()
+
     @property
     def __connection(self):
         return self._connection

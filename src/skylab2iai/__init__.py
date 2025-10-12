@@ -4,10 +4,10 @@ Skylab2IAI - A Python library for accessing and analyzing Skylab mission data.
 
 __version__ = "0.0.4"
 
-from .service.plate_frame import PlateFrameService
-from .repository.plate_frame_repository import PlateFrameRepository
+from .catalog.catalog import Skylab2iaiCatalog
+from src.skylab2iai.storage.plate_frame import SkylabPlateFrameCatalog
 
 __all__ = [
-    "PlateFrameService",
-    "PlateFrameRepository",
+    "Skylab2iaiCatalog",
+    "SkylabPlateFrameCatalog",
 ]

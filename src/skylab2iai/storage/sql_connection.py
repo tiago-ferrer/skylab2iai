@@ -3,12 +3,12 @@ from typing import final
 import sqlite3
 
 @final
-class _SqlDataConnection:
+class _SqlStorage:
     _instance = None
     
     def __new__(cls):
         if cls._instance is None:
-            cls._instance = super(_SqlDataConnection, cls).__new__(cls)
+            cls._instance = super(_SqlStorage, cls).__new__(cls)
             cls._instance.db = None
         return cls._instance
     
