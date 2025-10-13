@@ -1,9 +1,10 @@
 name: Publish to PyPI
 
 on:
-  push:
+  pull_request:
+    types: [closed]
     branches:
-      - master
+      - main
 
 jobs:
   publish:
