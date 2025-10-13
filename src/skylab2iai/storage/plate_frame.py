@@ -1,23 +1,25 @@
 from io import UnsupportedOperation
 from typing import final
+
 import pandas as pd
-from src.skylab2iai.storage.sql_connection import _SqlStorage
+
+from .sql_connection import _SqlStorage
 
 
 @final
 class _SkylabPlateStorage:
     _instance = None
-    
+
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super(_SkylabPlateStorage, cls).__new__(cls)
             cls._instance._connection = None
         return cls._instance
-    
+
     def __init__(self):
         if self._connection is None:
             self._connection = _SqlStorage()
-    
+
     @property
     def __connection(self):
         return self._connection
@@ -29,25 +31,22 @@ class _SkylabPlateStorage:
         return pd.read_sql_query("SELECT * FROM plate_frame", self.__connection.db)
 
     def get_plate_frames_by_plate(self, plate_name: str):
-        return pd.read_sql_query("SELECT * FROM plate_frame WHERE PLATE_ID = ?", self.__connection.db, params=(plate_name,))
+        return pd.read_sql_query("SELECT * FROM plate_frame WHERE PLATE_ID = ?", self.__connection.db,
+                                 params=(plate_name,))
 
-    @staticmethod
     def _avoid_sql_injection(self, query: str):
         if query.__contains__("--"):
             raise UnsupportedOperation("SQL injection is not allowed")
 
-    @staticmethod
     def __avoid_sql_delete(self, query: str):
         if query.__contains__("DELETE"):
             raise UnsupportedOperation("Delete operation is not allowed")
-    
-    @staticmethod
-    def __avoid_sql_update(query: str):
+
+    def __avoid_sql_update(self, query: str):
         if query.__contains__("UPDATE"):
             raise UnsupportedOperation("Update operation is not allowed")
-    
-    @staticmethod
-    def __avoid_sql_insert(query: str):
+
+    def __avoid_sql_insert(self, query: str):
         if query.__contains__("INSERT"):
             raise UnsupportedOperation("Insert operation is not allowed")
 
@@ -57,4 +56,3 @@ class _SkylabPlateStorage:
         self.__avoid_sql_update(query)
         self.__avoid_sql_insert(query)
         return pd.read_sql_query(query, self.__connection.db, params=params)
-    
