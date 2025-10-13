@@ -42,6 +42,8 @@ print(frame)
 plate_frames = catalog.get_plate_frames_by_plate("plate_id")
 print(f"Frames for this plate: {len(plate_frames)}")
 ```
+python3 -m pip install --upgrade twine
+python3 -m twine upload --repository skylab2iai dist/*
 
 ## Features
 
