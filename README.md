@@ -244,4 +244,4 @@ Tiago Ferrer (ferrertiago@gmail.com)
 
 ## Version
 
-Current version: 0.0.5
+Current version: 0.0.6
