@@ -2,7 +2,7 @@ from typing import final
 
 import pandas as pd
 
-from src.skylab2iai.storage.sql_connection import _SqlStorage
+from .sql_connection import _SqlStorage
 
 
 @final
