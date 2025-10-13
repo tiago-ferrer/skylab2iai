@@ -34,23 +34,19 @@ class _SkylabPlateStorage:
         return pd.read_sql_query("SELECT * FROM plate_frame WHERE PLATE_ID = ?", self.__connection.db,
                                  params=(plate_name,))
 
-    @staticmethod
     def _avoid_sql_injection(self, query: str):
         if query.__contains__("--"):
             raise UnsupportedOperation("SQL injection is not allowed")
 
-    @staticmethod
     def __avoid_sql_delete(self, query: str):
         if query.__contains__("DELETE"):
             raise UnsupportedOperation("Delete operation is not allowed")
 
-    @staticmethod
-    def __avoid_sql_update(query: str):
+    def __avoid_sql_update(self, query: str):
         if query.__contains__("UPDATE"):
             raise UnsupportedOperation("Update operation is not allowed")
 
-    @staticmethod
-    def __avoid_sql_insert(query: str):
+    def __avoid_sql_insert(self, query: str):
         if query.__contains__("INSERT"):
             raise UnsupportedOperation("Insert operation is not allowed")
 
