@@ -280,6 +280,3 @@ MIT License - see LICENSE file for details
 
 Tiago Ferrer (ferrertiago@gmail.com)
 
-## Version
-
-Current version: 0.0.7
