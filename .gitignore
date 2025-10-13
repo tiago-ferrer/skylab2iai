@@ -42,6 +42,7 @@ fits_data/
 # Test artifacts
 .pytest_cache/
 .coverage
+coverage.xml
 htmlcov/
 *.log
 

@@ -42,8 +42,6 @@ print(frame)
 plate_frames = catalog.get_plate_frames_by_plate("plate_id")
 print(f"Frames for this plate: {len(plate_frames)}")
 ```
-python3 -m pip install --upgrade twine
-python3 -m twine upload --repository skylab2iai dist/*
 
 ## Features
 
@@ -230,9 +228,49 @@ from skylab2iai import Skylab2iaiCatalog
 # Not PlateFrameService or other names
 ```
 
+## Development
+
+### Running Tests
+
+The library includes a comprehensive test suite with 100% code coverage.
+
+#### Install development dependencies
+```bash
+pip install -e ".[dev]"
+```
+
+#### Run tests
+```bash
+# Unix/macOS
+./run_tests.sh
+
+# Windows
+run_tests.bat
+
+# Or use pytest directly
+pytest --cov=skylab2iai --cov-report=term-missing
+```
+
+#### Test coverage
+The test suite covers:
+- Unit tests for all modules
+- Integration tests for complete workflows
+- SQL injection prevention
+- Error handling
+- Singleton pattern implementation
+- Mock tests for HTTP requests
+
+See `test/README.md` for detailed testing documentation.
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit issues or pull requests.
+
+When contributing:
+1. Write tests for new features
+2. Ensure all tests pass
+3. Maintain 100% code coverage
+4. Follow existing code style
 
 ## License
 

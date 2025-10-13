@@ -17,8 +17,8 @@ class Skylab2iaiCatalog:
 
     def __init__(self):
         if self._repository is None:
-            from ..storage.plate_frame import SkylabPlateFrameCatalog
-            self._repository = SkylabPlateFrameCatalog()
+            from ..storage.plate_frame import _SkylabPlateStorage
+            self._repository = _SkylabPlateStorage()
 
     @property
     def __repository(self):
