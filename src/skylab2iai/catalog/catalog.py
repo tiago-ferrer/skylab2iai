@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from io import UnsupportedOperation
 from pathlib import Path
 from typing import Optional
@@ -36,13 +37,14 @@ class Skylab2iaiCatalog:
     def get_plate_frames_by_query(self, query: str):
         return self._repository.get_from_custom_query(query)
 
-    def download_fits_plate_frames(self, plate_names: tuple, output_dir: Optional[str] = None):
+    def download_fits_plate_frames(self, plate_names: tuple, output_dir: Optional[str] = None, max_workers: Optional[int] = None):
         """
-        Download FITS files for the specified plate frames.
+        Download FITS files for the specified plate frames using parallel processing.
         
         Args:
             plate_names: A tuple of plate frame names to download
             output_dir: Directory to save downloaded files (default: './fits_downloads')
+            max_workers: Maximum number of parallel downloads (default: min(32, cpu_count + 4))
             
         Returns:
             A tuple containing (DataFrame of plate frames, list of downloaded file paths)
@@ -58,9 +60,9 @@ class Skylab2iaiCatalog:
         result_frames_list = []
         downloaded_files = []
 
-        # Process each plate name
+        # Prepare download tasks
+        download_tasks = []
         for plate_name in plate_names:
-            # Get the plate frame data
             try:
                 plate_frame = self.__repository.get_plate_frame(plate_name)
 
@@ -81,13 +83,29 @@ class Skylab2iaiCatalog:
                     print(f"Warning: Empty LINK_FTS for plate frame '{plate_name}'")
                     continue
 
-                # Download the file using a separate function to isolate any issues
-                file_path = self._download_single_file(link_fits, output_path, plate_name)
-                if file_path:
-                    downloaded_files.append(file_path)
+                download_tasks.append((link_fits, output_path, plate_name))
 
             except Exception as e:
                 print(f"Error processing plate frame '{plate_name}': {str(e)}")
+
+        # Download files in parallel using ThreadPoolExecutor
+        if download_tasks:
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                # Submit all download tasks
+                future_to_plate = {
+                    executor.submit(self._download_single_file, url, output_dir, plate_name): plate_name
+                    for url, output_dir, plate_name in download_tasks
+                }
+
+                # Collect results as they complete
+                for future in as_completed(future_to_plate):
+                    plate_name = future_to_plate[future]
+                    try:
+                        file_path = future.result()
+                        if file_path:
+                            downloaded_files.append(file_path)
+                    except Exception as e:
+                        print(f"Error downloading file for '{plate_name}': {str(e)}")
 
         # Combine all frames into a single DataFrame
         result_df = pd.DataFrame()
@@ -141,8 +159,18 @@ class Skylab2iaiCatalog:
             print(f"Error downloading file: {str(e)}")
             return None
 
-    def download_fits_plate_frames_from_custom_query(self, query: str, output_dir: Optional[str] = None):
-
+    def download_fits_plate_frames_from_custom_query(self, query: str, output_dir: Optional[str] = None, max_workers: Optional[int] = None):
+        """
+        Download FITS files from a custom query using parallel processing.
+        
+        Args:
+            query: SQL query to retrieve plate frames
+            output_dir: Directory to save downloaded files (default: './fits_downloads')
+            max_workers: Maximum number of parallel downloads (default: min(32, cpu_count + 4))
+            
+        Returns:
+            A tuple containing (DataFrame of plate frames, list of downloaded file paths)
+        """
         if output_dir is None:
             output_dir = './fits_downloads'
 
@@ -156,27 +184,29 @@ class Skylab2iaiCatalog:
         if plate_frames.empty:
             raise UnsupportedOperation(f"Warning: No plate frames found for query '{query}'")
 
+        # Prepare download tasks
+        download_tasks = []
         for index, row in plate_frames.iterrows():
             plate_frame_name = row["NAME"]
             link_fit = row["LINK_FTS"]
-            try:
-                # Download the file
-                print(f"Downloading FITS file for '{plate_frame_name}' from {link_fit}")
-                response = requests.get(link_fit, stream=True)
-                response.raise_for_status()
+            download_tasks.append((link_fit, output_path, plate_frame_name))
 
-                # Save the file
-                file_name = f"{plate_frame_name}.fits"
-                file_path = output_path / file_name
+        # Download files in parallel using ThreadPoolExecutor
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            # Submit all download tasks
+            future_to_plate = {
+                executor.submit(self._download_single_file, url, output_dir, plate_name): plate_name
+                for url, output_dir, plate_name in download_tasks
+            }
 
-                with open(file_path, 'wb') as f:
-                    for chunk in response.iter_content(chunk_size=8192):
-                        f.write(chunk)
-
-                print(f"Successfully downloaded: {file_path}")
-                downloaded_files.append(str(file_path))
-
-            except Exception as e:
-                print(f"Error downloading FITS file for '{plate_frame_name}': {str(e)}")
+            # Collect results as they complete
+            for future in as_completed(future_to_plate):
+                plate_name = future_to_plate[future]
+                try:
+                    file_path = future.result()
+                    if file_path:
+                        downloaded_files.append(file_path)
+                except Exception as e:
+                    print(f"Error downloading FITS file for '{plate_name}': {str(e)}")
 
         return plate_frames, downloaded_files
