@@ -210,3 +210,6 @@ class Skylab2iaiCatalog:
                     print(f"Error downloading FITS file for '{plate_name}': {str(e)}")
 
         return plate_frames, downloaded_files
+
+    def df_by_query(self, query: str):
+        return self._repository.get_from_custom_query(query)
