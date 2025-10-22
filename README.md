@@ -195,7 +195,7 @@ df, files = catalog.download_fits_plate_frames_from_custom_query(
 
 If you encounter database errors in Google Colab:
 
-1. **Restart the runtime** and reinstall:
+1. **Restart the runtime** and reinstall: 
    ```python
    # In Google Colab: Runtime > Restart runtime
    !pip install --force-reinstall git+https://github.com/tferrer/skylab2iai.git
