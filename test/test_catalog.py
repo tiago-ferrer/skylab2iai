@@ -61,15 +61,16 @@ class TestSkylab2iaiCatalog:
         assert isinstance(result, pd.DataFrame), "Should return a DataFrame"
         assert len(result) <= 5, "Should return at most 5 rows"
     
-    @patch('skylab2iai.catalog.catalog.requests.get')
-    def test_download_fits_plate_frames_success(self, mock_get):
+    @patch('skylab2iai.catalog.catalog.requests.Session')
+    def test_download_fits_plate_frames_success(self, mock_session_class):
         """Test successful FITS file download."""
-        # Setup mock response
+        mock_session = Mock()
+        mock_session_class.return_value = mock_session
         mock_response = Mock()
         mock_response.status_code = 200
         mock_response.iter_content = Mock(return_value=[b'test data'])
         mock_response.raise_for_status = Mock()
-        mock_get.return_value = mock_response
+        mock_session.get.return_value = mock_response
         
         catalog = Skylab2iaiCatalog()
         all_frames = catalog.get_plate_frames()
@@ -88,8 +89,8 @@ class TestSkylab2iaiCatalog:
                 assert isinstance(result_df, pd.DataFrame), "Should return a DataFrame"
                 assert isinstance(downloaded_files, list), "Should return a list of files"
     
-    @patch('skylab2iai.catalog.catalog.requests.get')
-    def test_download_fits_plate_frames_nonexistent(self, mock_get):
+    @patch('skylab2iai.catalog.catalog.requests.Session')
+    def test_download_fits_plate_frames_nonexistent(self, mock_session_class):
         """Test downloading non-existent plate frame."""
         catalog = Skylab2iaiCatalog()
         
@@ -104,14 +105,16 @@ class TestSkylab2iaiCatalog:
             assert len(result_df) == 0, "Should return empty DataFrame"
             assert len(downloaded_files) == 0, "Should not download any files"
     
-    @patch('skylab2iai.catalog.catalog.requests.get')
-    def test_download_fits_plate_frames_default_dir(self, mock_get):
+    @patch('skylab2iai.catalog.catalog.requests.Session')
+    def test_download_fits_plate_frames_default_dir(self, mock_session_class):
         """Test download with default output directory."""
+        mock_session = Mock()
+        mock_session_class.return_value = mock_session
         mock_response = Mock()
         mock_response.status_code = 200
         mock_response.iter_content = Mock(return_value=[b'test data'])
         mock_response.raise_for_status = Mock()
-        mock_get.return_value = mock_response
+        mock_session.get.return_value = mock_response
         
         catalog = Skylab2iaiCatalog()
         all_frames = catalog.get_plate_frames()
@@ -137,10 +140,12 @@ class TestSkylab2iaiCatalog:
                 if default_dir.exists():
                     shutil.rmtree(default_dir)
     
-    @patch('skylab2iai.catalog.catalog.requests.get')
-    def test_download_fits_plate_frames_http_error(self, mock_get):
+    @patch('skylab2iai.catalog.catalog.requests.Session')
+    def test_download_fits_plate_frames_http_error(self, mock_session_class):
         """Test handling of HTTP errors during download."""
-        mock_get.side_effect = requests.exceptions.HTTPError("404 Not Found")
+        mock_session = Mock()
+        mock_session_class.return_value = mock_session
+        mock_session.get.side_effect = requests.exceptions.HTTPError("404 Not Found")
         
         catalog = Skylab2iaiCatalog()
         all_frames = catalog.get_plate_frames()
@@ -159,14 +164,16 @@ class TestSkylab2iaiCatalog:
                 assert isinstance(result_df, pd.DataFrame), "Should return a DataFrame"
                 assert len(downloaded_files) == 0, "Should not have downloaded files"
     
-    @patch('skylab2iai.catalog.catalog.requests.get')
-    def test_download_fits_multiple_frames(self, mock_get):
+    @patch('skylab2iai.catalog.catalog.requests.Session')
+    def test_download_fits_multiple_frames(self, mock_session_class):
         """Test downloading multiple FITS files."""
+        mock_session = Mock()
+        mock_session_class.return_value = mock_session
         mock_response = Mock()
         mock_response.status_code = 200
         mock_response.iter_content = Mock(return_value=[b'test data'])
         mock_response.raise_for_status = Mock()
-        mock_get.return_value = mock_response
+        mock_session.get.return_value = mock_response
         
         catalog = Skylab2iaiCatalog()
         all_frames = catalog.get_plate_frames()
@@ -184,14 +191,16 @@ class TestSkylab2iaiCatalog:
                 assert isinstance(result_df, pd.DataFrame), "Should return a DataFrame"
                 assert len(result_df) >= 1, "Should have results"
     
-    @patch('skylab2iai.catalog.catalog.requests.get')
-    def test_download_fits_from_custom_query_success(self, mock_get):
+    @patch('skylab2iai.catalog.catalog.requests.Session')
+    def test_download_fits_from_custom_query_success(self, mock_session_class):
         """Test downloading FITS files from custom query."""
+        mock_session = Mock()
+        mock_session_class.return_value = mock_session
         mock_response = Mock()
         mock_response.status_code = 200
         mock_response.iter_content = Mock(return_value=[b'test data'])
         mock_response.raise_for_status = Mock()
-        mock_get.return_value = mock_response
+        mock_session.get.return_value = mock_response
         
         catalog = Skylab2iaiCatalog()
         query = "SELECT * FROM plate_frame LIMIT 1"
@@ -219,14 +228,16 @@ class TestSkylab2iaiCatalog:
                     output_dir=tmpdir
                 )
     
-    @patch('skylab2iai.catalog.catalog.requests.get')
-    def test_download_fits_from_custom_query_default_dir(self, mock_get):
+    @patch('skylab2iai.catalog.catalog.requests.Session')
+    def test_download_fits_from_custom_query_default_dir(self, mock_session_class):
         """Test download from custom query with default directory."""
+        mock_session = Mock()
+        mock_session_class.return_value = mock_session
         mock_response = Mock()
         mock_response.status_code = 200
         mock_response.iter_content = Mock(return_value=[b'test data'])
         mock_response.raise_for_status = Mock()
-        mock_get.return_value = mock_response
+        mock_session.get.return_value = mock_response
         
         catalog = Skylab2iaiCatalog()
         query = "SELECT * FROM plate_frame LIMIT 1"
@@ -246,14 +257,16 @@ class TestSkylab2iaiCatalog:
             if default_dir.exists():
                 shutil.rmtree(default_dir)
     
-    @patch('skylab2iai.catalog.catalog.requests.get')
-    def test_download_single_file_success(self, mock_get):
+    @patch('skylab2iai.catalog.catalog.requests.Session')
+    def test_download_single_file_success(self, mock_session_class):
         """Test _download_single_file helper method."""
+        mock_session = Mock()
+        mock_session_class.return_value = mock_session
         mock_response = Mock()
         mock_response.status_code = 200
         mock_response.iter_content = Mock(return_value=[b'test data chunk'])
         mock_response.raise_for_status = Mock()
-        mock_get.return_value = mock_response
+        mock_session.get.return_value = mock_response
         
         catalog = Skylab2iaiCatalog()
         
@@ -269,10 +282,12 @@ class TestSkylab2iaiCatalog:
             assert result is not None, "Should return file path"
             assert "test_plate.fits" in result, "Should contain correct filename"
     
-    @patch('skylab2iai.catalog.catalog.requests.get')
-    def test_download_single_file_error(self, mock_get):
+    @patch('skylab2iai.catalog.catalog.requests.Session')
+    def test_download_single_file_error(self, mock_session_class):
         """Test _download_single_file with error."""
-        mock_get.side_effect = Exception("Network error")
+        mock_session = Mock()
+        mock_session_class.return_value = mock_session
+        mock_session.get.side_effect = Exception("Network error")
         
         catalog = Skylab2iaiCatalog()
         
