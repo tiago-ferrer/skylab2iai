@@ -5,6 +5,9 @@ from typing import Optional
 
 import pandas as pd
 import requests
+import urllib3
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class Skylab2iaiCatalog:
@@ -140,7 +143,7 @@ class Skylab2iaiCatalog:
             print(f"Downloading FITS file from {url}")
 
             # Make the HTTP request
-            response = requests.get(url, stream=True)
+            response = requests.get(url, stream=True, verify=False)
             response.raise_for_status()
 
             # Prepare the output file path
