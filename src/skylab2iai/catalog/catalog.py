@@ -3,11 +3,24 @@ from io import UnsupportedOperation
 from pathlib import Path
 from typing import Optional
 
+import ssl
+
 import pandas as pd
 import requests
 import urllib3
+from requests.adapters import HTTPAdapter
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+
+class _NoSSLVerifyAdapter(HTTPAdapter):
+    """HTTPAdapter that bypasses SSL certificate verification at the connection pool level."""
+    def init_poolmanager(self, *args, **kwargs):
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        kwargs['ssl_context'] = ctx
+        return super().init_poolmanager(*args, **kwargs)
 
 
 class Skylab2iaiCatalog:
@@ -142,8 +155,10 @@ class Skylab2iaiCatalog:
         try:
             print(f"Downloading FITS file from {url}")
 
-            # Make the HTTP request
-            response = requests.get(url, stream=True, verify=False)
+            # Make the HTTP request bypassing SSL verification
+            session = requests.Session()
+            session.mount('https://', _NoSSLVerifyAdapter())
+            response = session.get(url, stream=True, verify=False)
             response.raise_for_status()
 
             # Prepare the output file path

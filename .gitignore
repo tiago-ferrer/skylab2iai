@@ -50,3 +50,4 @@ htmlcov/
 build/
 dist/
 *.egg-info/
+/identifier.sqlite
